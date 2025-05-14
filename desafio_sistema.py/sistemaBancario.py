@@ -91,3 +91,114 @@ if __name__ == "__main__":
   deposito = Deposito(1000.0)
   client1.realizar_transacao(conta1, Saque)
   print (f"Saldo final: R${conta1.saldo:.2f}")
+
+from datetime import date
+import sys
+
+
+#Funções do menu:
+
+def menu():
+    print("\n=== MENU ===")
+    print("1 - Criar cliente")
+    print("2 - Criar conta")
+    print("3 - Depositar")
+    print("4 - Sacar")
+    print("5 - Mostrar extrato")
+    print("6 - Sair")
+    return input("Escolha uma opção: ")
+
+# Dados em memória
+clientes = []
+contas = []
+
+def encontrar_cliente_por_cpf(cpf):
+    for cliente in clientes:
+        if isinstance(cliente, PessoaFisica) and cliente.cpf == cpf:
+            return cliente
+    return None
+
+def encontrar_conta_por_numero(numero):
+    for conta in contas:
+        if conta.numero == numero:
+            return conta
+    return None
+
+def criar_cliente():
+    nome = input("Nome: ")
+    cpf = input("CPF: ")
+    data_nascimento = input("Data de nascimento (DD-MM-AAAA): ")
+    endereco = input("Endereço: ")
+
+    cliente = PessoaFisica(nome, cpf, date.fromisoformat(data_nascimento), endereco)
+    clientes.append(cliente)
+    print("Cliente criado com sucesso!")
+
+def criar_conta():
+    cpf = input("CPF do cliente: ")
+    cliente = encontrar_cliente_por_cpf(cpf)
+
+    if cliente:
+        numero = len(contas) + 1  #lógica para número de conta
+        conta = ContaCorrente(cliente, numero)
+        cliente.adicionar_contas(conta)
+        contas.append(conta)
+        print(f"Conta criada com sucesso! Número: {numero}")
+    else:
+        print("Cliente não encontrado!")
+
+def depositar():
+    numero = int(input("Número da conta: "))
+    conta = encontrar_conta_por_numero(numero)
+
+    if conta:
+        valor = float(input("Valor para depositar: "))
+        transacao = Deposito(valor)
+        conta.cliente.realizar_transacao(conta, transacao)
+    else:
+        print("Conta não encontrada.")
+
+def sacar():
+    numero = int(input("Número da conta: "))
+    conta = encontrar_conta_por_numero(numero)
+
+    if conta:
+        valor = float(input("Valor para sacar: "))
+        transacao = Saque(valor)
+        conta.cliente.realizar_transacao(conta, transacao)
+    else:
+        print("Conta não encontrada.")
+
+def mostrar_extrato():
+    numero = int(input("Número da conta: "))
+    conta = encontrar_conta_por_numero(numero)
+
+    if conta:
+        print("\n=== Extrato ===")
+        for transacao in conta.historico.transacoes:
+            tipo = transacao.__class__.__name__
+            print(f"{tipo}: R${transacao.valor:.2f}")
+        print(f"Saldo atual: R${conta.saldo:.2f}")
+    else:
+        print("Conta não encontrada.")
+
+# Loop do menu principal
+if __name__ == "__main__":
+    while True:
+        opcao = menu()
+
+        if opcao == "1":
+            criar_cliente()
+        elif opcao == "2":
+            criar_conta()
+        elif opcao == "3":
+            depositar()
+        elif opcao == "4":
+            sacar()
+        elif opcao == "5":
+            mostrar_extrato()
+        elif opcao == "6":
+            print("Encerrando o sistema.")
+            sys.exit()
+        else:
+            print("Opção inválida!")
